@@ -24,15 +24,15 @@
 
 import UIKit
 
-public class MonthYearPickerView: UIPickerView {
+open class MonthYearPickerView: UIPickerView {
     
-    public var date: NSDate = NSDate() {
+    open var date: Date = Date() {
         didSet {
             
-            let dateComponents = calendar.components([.Year, .Month], fromDate: date)
+            var dateComponents = (calendar as NSCalendar).components([.year, .month], from: date)
             dateComponents.hour = 12
             
-            guard let date = calendar.dateFromComponents(dateComponents) else {
+            guard let date = calendar.date(from: dateComponents) else {
                 return
             }
             
@@ -41,14 +41,14 @@ public class MonthYearPickerView: UIPickerView {
         }
     }
     
-    public var calendar: NSCalendar = NSCalendar.currentCalendar() {
+    open var calendar: Calendar = Calendar.current {
         didSet {
             monthDateFormatter.calendar = calendar
             yearDateFormatter.calendar = calendar
         }
     }
     
-    public var locale: NSLocale? {
+    open var locale: Locale? {
         didSet {
             calendar.locale = locale
             monthDateFormatter.locale = locale
@@ -56,23 +56,23 @@ public class MonthYearPickerView: UIPickerView {
         }
     }
     
-    public var dateSelectionHandler: (NSDate -> Void)?
+    open var dateSelectionHandler: ((Date) -> Void)?
     
-    lazy private var monthDateFormatter: NSDateFormatter = {
-        let formatter = NSDateFormatter()
+    lazy fileprivate var monthDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
         formatter.dateFormat = "MMMM"
         return formatter
     }()
     
-    lazy private var yearDateFormatter: NSDateFormatter = {
-        let formatter = NSDateFormatter()
+    lazy fileprivate var yearDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
         formatter.dateFormat = "y"
         return formatter
     }()
     
-    private enum Component: Int {
-        case Month
-        case Year
+    fileprivate enum Component: Int {
+        case month
+        case year
     }
     
     override public init(frame: CGRect) {
@@ -89,23 +89,23 @@ public class MonthYearPickerView: UIPickerView {
         setDate(date, animated: false)
     }
     
-    public func setDate(date: NSDate, animated: Bool) {
-        let month = calendar.component(.Month, fromDate: date) - calendar.maximumRangeOfUnit(.Month).location
-        selectRow(month, inComponent: Component.Month.rawValue, animated: animated)
-        let year = calendar.component(.Year, fromDate: date) - calendar.maximumRangeOfUnit(.Year).location
-        selectRow(year, inComponent: Component.Year.rawValue, animated: animated)
+    open func setDate(_ date: Date, animated: Bool) {
+        let month = (calendar as NSCalendar).component(.month, from: date) - (calendar as NSCalendar).maximumRange(of: .month).location
+        selectRow(month, inComponent: Component.month.rawValue, animated: animated)
+        let year = (calendar as NSCalendar).component(.year, from: date) - (calendar as NSCalendar).maximumRange(of: .year).location
+        selectRow(year, inComponent: Component.year.rawValue, animated: animated)
     }
     
 }
 
 extension MonthYearPickerView: UIPickerViewDelegate {
     
-    public func pickerView(pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        let dateComponents = NSDateComponents()
-        dateComponents.year = calendar.maximumRangeOfUnit(.Year).location + pickerView.selectedRowInComponent(Component.Year.rawValue)
-        dateComponents.month = calendar.maximumRangeOfUnit(.Month).location + pickerView.selectedRowInComponent(Component.Month.rawValue)
+    public func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+        var dateComponents = DateComponents()
+        dateComponents.year = (calendar as NSCalendar).maximumRange(of: .year).location + pickerView.selectedRow(inComponent: Component.year.rawValue)
+        dateComponents.month = (calendar as NSCalendar).maximumRange(of: .month).location + pickerView.selectedRow(inComponent: Component.month.rawValue)
         dateComponents.hour = 12
-        guard let date = calendar.dateFromComponents(dateComponents) else {
+        guard let date = calendar.date(from: dateComponents) else {
             return
         }
         self.date = date
@@ -115,44 +115,44 @@ extension MonthYearPickerView: UIPickerViewDelegate {
 
 extension MonthYearPickerView: UIPickerViewDataSource {
     
-    public func numberOfComponentsInPickerView(pickerView: UIPickerView) -> Int {
+    public func numberOfComponents(in pickerView: UIPickerView) -> Int {
         return 2
     }
     
-    public func pickerView(pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+    public func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
 
         guard let component = Component(rawValue: component) else { return 0 }
         switch component {
-        case .Month:
-            return calendar.maximumRangeOfUnit(.Month).length
-        case .Year:
-            return calendar.maximumRangeOfUnit(.Year).length
+        case .month:
+            return (calendar as NSCalendar).maximumRange(of: .month).length
+        case .year:
+            return (calendar as NSCalendar).maximumRange(of: .year).length
         }
         
     }
     
-    public func pickerView(pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+    public func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
         guard let component = Component(rawValue: component) else { return nil }
         
         switch component {
-        case .Month:
-            let month = calendar.maximumRangeOfUnit(.Month).location + row
-            let dateComponents = NSDateComponents()
+        case .month:
+            let month = (calendar as NSCalendar).maximumRange(of: .month).location + row
+            var dateComponents = DateComponents()
             dateComponents.month = month
             dateComponents.hour = 12
-            guard let date = calendar.dateFromComponents(dateComponents) else {
+            guard let date = calendar.date(from: dateComponents) else {
                 return nil
             }
-            return monthDateFormatter.stringFromDate(date)
-        case .Year:
-            let year = calendar.maximumRangeOfUnit(.Year).location + row
-            let dateComponents = NSDateComponents()
+            return monthDateFormatter.string(from: date)
+        case .year:
+            let year = (calendar as NSCalendar).maximumRange(of: .year).location + row
+            var dateComponents = DateComponents()
             dateComponents.year = year
             dateComponents.hour = 12
-            guard let date = calendar.dateFromComponents(dateComponents) else {
+            guard let date = calendar.date(from: dateComponents) else {
                 return nil
             }
-            return yearDateFormatter.stringFromDate(date)
+            return yearDateFormatter.string(from: date)
         }
         
     }
