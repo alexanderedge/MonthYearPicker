@@ -32,7 +32,7 @@ class ViewController: UIViewController {
         // Do any additional setup after loading the view, typically from a nib.
         
         
-        let picker = MonthYearPickerView(frame: CGRect(origin: CGPoint(x: 0, y: (CGRectGetHeight(view.bounds) - 216) / 2), size: CGSize(width: CGRectGetWidth(view.bounds), height: 216)))
+        let picker = MonthYearPickerView(frame: CGRect(origin: CGPoint(x: 0, y: ((view.bounds).height - 216) / 2), size: CGSize(width: (view.bounds).width, height: 216)))
         
         
         picker.dateSelectionHandler = { date in
@@ -41,19 +41,19 @@ class ViewController: UIViewController {
         
         view.addSubview(picker)
         
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(2 * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) {
-            let dateComponents = NSDateComponents()
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double(Int64(2 * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)) {
+            var dateComponents = DateComponents()
             dateComponents.year = 2020
             dateComponents.month = 1
             
-            let date = NSCalendar.currentCalendar().dateFromComponents(dateComponents)!
+            let date = Calendar.current.date(from: dateComponents)!
             
             picker.date = date
         }
         
     }
     
-    override func viewDidAppear(animated: Bool) {
+    override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
         
