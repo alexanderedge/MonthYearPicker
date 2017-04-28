@@ -54,6 +54,8 @@ open class MonthYearPickerView: UIControl {
         }
     }
 
+    fileprivate var yearRange: Range<Int>?
+    
     lazy fileprivate var pickerView: UIPickerView = {
         let pickerView = UIPickerView(frame: self.bounds)
         pickerView.dataSource = self
@@ -81,6 +83,22 @@ open class MonthYearPickerView: UIControl {
     
     override public init(frame: CGRect) {
         super.init(frame: frame)
+        initialSetup()
+    }
+    
+    public init(startingYear: Int = -1, yearsSpan: Int) {
+        let calendar = Calendar.autoupdatingCurrent
+        let date = Date()
+        
+        // starting year defaults to current year if not specified
+        var year = calendar.component(.year, from: date)
+        if startingYear >= 0 {
+            year = startingYear
+        }
+        let endYear = year + yearsSpan + 1
+        yearRange = Range(uncheckedBounds: (lower: year, upper: endYear))
+        
+        super.init(frame: CGRect.zero)
         initialSetup()
     }
     
@@ -132,7 +150,6 @@ extension MonthYearPickerView: UIPickerViewDataSource {
     }
     
     public func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-
         guard let component = Component(rawValue: component) else { return 0 }
         switch component {
         case .month:
@@ -141,12 +158,13 @@ extension MonthYearPickerView: UIPickerViewDataSource {
             }
             return range.count
         case .year:
-            guard let range = calendar.maximumRange(of: .year) else {
-                return 0
+            if let range = yearRange {
+                return range.count
+            } else if let range = calendar.maximumRange(of: .year) {
+                return range.count
             }
-            return range.count
+            return 0
         }
-        
     }
     
     public func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
@@ -165,9 +183,14 @@ extension MonthYearPickerView: UIPickerViewDataSource {
             }
             return monthDateFormatter.string(from: date)
         case .year:
-            guard let range = calendar.maximumRange(of: .year) else {
+            guard var range = calendar.maximumRange(of: .year) else {
                 return nil
             }
+            
+            if let customRange = yearRange {
+                range = customRange
+            }
+            
             let year = range.lowerBound + row
             var dateComponents = DateComponents()
             dateComponents.year = year
